@@ -1,0 +1,21 @@
+on	0	115
+dacvolts	0	1	3.3
+dacvolts	1000	2	0.21
+dacvolts	2000	101	-0.0006
+dacvolts	2004	102	0
+dacvolts	2008	103	0
+dacvolts	2012	3	0
+dacvolts	3012	4	0
+on	0	19
+dacvolts	4012	106	0
+dacvolts	6012	2	0.15
+on	6018	111
+off	7018	111
+dacvolts	8018	2	0.21
+on	10018	2
+on	10018	3
+off	11018	2
+off	11018	3
+dacvolts	2012018	1	3.33
+dacvolts	2012024	2	0
+off	2012030	115

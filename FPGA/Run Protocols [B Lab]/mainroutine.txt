@@ -1,0 +1,235 @@
+dacvolts	0	1	3.33
+dacvolts	1000	2	0.21
+dacvolts	2000	3	0
+dacvolts	3000	4	0
+on	0	116
+dacvolts	5000	106	0
+off	0	111
+off	0	112
+off	0	113
+off	0	1
+off	0	0
+off	0	7
+off	0	2
+off	0	3
+off	0	18
+off	0	4
+off	0	20
+off	0	21
+off	0	115
+off	0	118
+off	0	13
+off	0	14
+dacvolts	6000	101	-0.0006
+dacvolts	6004	102	0
+dacvolts	6008	103	0
+off	6012	105
+off	6012	106
+off	6012	101
+off	6012	102
+off	6012	103
+off	6012	104
+GPIBwrite	0	1	output off
+GPIBwrite	200000	1	function sin
+GPIBwrite	400000	1	voltage:offset 0mV
+GPIBwrite	600000	1	voltage:amplitude -33DBM
+GPIBwrite	800000	1	voltage:limit:high 2V
+GPIBwrite	1000000	1	voltage:unit dbm
+GPIBwrite	1200000	1	:frequency:start 100E6
+GPIBwrite	1400000	1	:frequency:stop 99E6
+GPIBwrite	1600000	1	frequency:mode sweep
+GPIBwrite	1800000	1	sweep:spacing linear
+GPIBwrite	2000000	1	sweep:mode manual
+GPIBwrite	2200000	1	trigger:source external
+GPIBwrite	2400000	1	trigger:slope positive
+GPIBwrite	2600000	1	sweep:htime 1ms
+GPIBwrite	4000000	19	FREQ 6.9459E6
+GPIBwrite	4200000	19	FUNC 0
+GPIBwrite	4400000	19	OFFS 0
+GPIBwrite	4600000	19	AMPL -8.0DB
+GPIBwrite	4800000	19	MTYP 0
+GPIBwrite	5000000	19	STFR 6.953E6
+GPIBwrite	5200000	19	SPFR 6.957E6
+GPIBwrite	5400000	19	MDWF 0
+GPIBwrite	5600000	19	MENA 0
+GPIBwrite	5800000	19	RATE 1000
+GPIBwrite	6000000	19	TSRC 2
+GPIBwrite	7000000	20	FREQ 23.5E6
+GPIBwrite	7200000	20	FUNC 0
+GPIBwrite	7400000	20	OFFS 0
+GPIBwrite	7600000	20	AMPL 12DB
+GPIBwrite	7800000	20	MTYP 0
+GPIBwrite	8000000	20	STFR 21.89E6
+GPIBwrite	8200000	20	SPFR 26.89E6
+GPIBwrite	8400000	20	MDWF 0
+GPIBwrite	8600000	20	MENA 1
+GPIBwrite	8800000	20	RATE 1000
+GPIBwrite	9000000	20	TSRC 2
+on	6012	2
+on	6012	3
+on	6012	109
+off	10006012	109
+on	11006012	1
+on	11026012	0
+off	11039012	2
+off	11044012	3
+off	11046012	1
+off	11046012	0
+dacvolts	11044012	2	4.5
+dacvolts	11044112	1	5
+linrampbits	11045112	2	47512	54721	200000	1000
+dacvolts	11247112	101	-0.0006
+dacvolts	11247116	102	0
+dacvolts	11247120	103	0
+off	11247124	105
+off	11247124	106
+off	11247124	101
+off	11247124	102
+off	11247124	103
+off	11247124	104
+dacvolts	11247124	4	0
+on	11247128	107
+dacvolts	11247128	104	-0.1
+on	11247132	108
+dacvolts	11247132	6	-0.1
+dacvolts	11247136	105	-0.1
+dacvolts	11247140	108	-0.1
+dacvolts	11247144	5	-0.1
+dacvolts	11247148	7	-0.1
+on	11247152	121
+off	11247152	120
+off	11247152	127
+off	11247152	129
+on	11247152	122
+off	11247152	141
+off	11247152	142
+GPIBwrite	13247152	1	output on
+raise	11247152	5	5000
+linrampbits	14447152	2	54721	48332	200000	1000
+linrampbits	14649152	2	48332	32767	3000	100
+dacvolts	14652158	2	-10
+linrampbits	14652164	103	32767	49970	3000	100
+dacvolts	14655170	101	0.4994
+dacvolts	14655276	1	3
+linrampbits	14655182	103	49970	53771	200000	1000
+linrampbits	14857182	101	34403	37261	200000	1000
+raise	15069182	6	5000
+GPIBwrite	15059182	1	:voltage:amplitude 2DBM;:frequency:start 60E6;:frequency:stop 35E6;:sweep:time 12s
+on	16059182	14
+raise	16059182	13	1000
+off	28059182	14
+GPIBwrite	28059182	1	:voltage:amplitude -0.7DBM;:frequency:start 35E6;:frequency:stop 13E6;:sweep:time 15s
+on	29059182	14
+raise	29059182	13	1000
+off	44059182	14
+GPIBwrite	44059182	1	:voltage:amplitude -2.8DBM;:frequency:start 13E6;:frequency:stop 8E6;:sweep:time 10s
+on	45059182	14
+raise	45059182	13	1000
+off	55059182	14
+GPIBwrite	55059182	1	:voltage:amplitude -2.7DBM;:frequency:start 8E6;:frequency:stop 4E6;:sweep:time 5s
+on	56059182	14
+raise	56059182	13	1000
+off	61059182	14
+GPIBwrite	61059182	1	:voltage:amplitude -4.7DBM;:frequency:start 4E6;:frequency:stop 2E6;:sweep:time 10s
+on	62059182	14
+raise	62059182	13	1000
+off	72059182	14
+linrampbits	72059182	101	37261	37189	1000000	1000
+GPIBwrite	73059182	1	:voltage:amplitude 3.2DBM;:frequency:start 3.385E6;:frequency:stop 1.625E6;:sweep:time 50s
+on	74059182	14
+raise	74059182	13	1000
+off	124059182	14
+dacvolts	124059182	8	0
+on	124059188	116
+dacvolts	124059194	106	0
+dacvolts	124059200	3	0
+dacvolts	124059206	4	0
+off	124059212	18
+off	124059212	21
+on	124059212	106
+on	124059212	105
+dacvolts	124059212	3	0
+dacvolts	124059218	4	0
+on	124059224	107
+on	124059224	108
+dacvolts	124059224	6	-0.1
+off	124059230	127
+off	124059236	129
+on	124059242	122
+dacvolts	124059248	5	0
+dacvolts	124059254	7	0
+off	124059260	128
+dacvolts	124059260	105	-0.1
+dacvolts	124059264	108	-0.1
+dacvolts	124059268	5	-0.1
+dacvolts	124059272	7	-0.1
+on	124059276	121
+off	124059276	120
+off	124059276	118
+raise	124060276	21	1000
+on	124058776	12
+raise	124055776	11	10000
+raise	124061276	10	10
+off	124062276	12
+on	124062276	105
+on	124062276	106
+on	124062276	107
+dacvolts	124062276	101	-0.0006
+dacvolts	124062280	102	0
+dacvolts	124062284	103	0
+dacvolts	124062288	2	-10
+off	124062294	18
+dacvolts	124062294	4	0
+on	124812298	12
+raise	124814298	11	10000
+raise	124819798	10	10
+off	124820798	12
+raise	125570798	11	10000
+off	125586298	117
+off	125586298	115
+on	125586298	107
+dacvolts	125586298	104	-0.1
+on	125586302	108
+dacvolts	125586302	6	-0.1
+off	125586306	127
+off	125586312	129
+off	125586318	125
+off	125586324	126
+off	125586330	128
+dacvolts	125586336	105	-0.1
+dacvolts	125586340	108	-0.1
+dacvolts	125586344	5	-0.1
+dacvolts	125586348	7	-0.1
+on	125586352	121
+off	125586352	120
+on	125586352	122
+off	125586352	141
+off	125586358	142
+off	125586364	143
+off	125586370	144
+dacvolts	125586376	8	-10
+on	125586382	116
+off	125586388	17
+off	125586394	118
+on	125586394	105
+on	125586394	106
+on	125586394	107
+dacvolts	125586394	101	-0.0006
+dacvolts	125586398	102	0
+dacvolts	125586402	103	0
+dacvolts	125586406	2	-10
+off	125586412	18
+dacvolts	125586412	3	0
+dacvolts	125586416	4	0
+on	125596420	116
+off	125596420	120
+GPIBwrite	125596420	1	output off
+dacvolts	125596420	2	-10
+dacvolts	125596526	1	3.33
+raise	125997426	2	300000
+raise	125997426	3	300000
+dacvolts	126297426	2	-0.2
+dacvolts	126597426	2	0.21
+raise	126597426	2	1000000
+raise	126597426	3	1000000
+dacvolts	127597426	2	0.21
