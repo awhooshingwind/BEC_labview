@@ -1,0 +1,55 @@
+float64 as;
+float64 bs;
+float64 cs;
+float64 ds;
+
+tstart = xt;
+
+// So far there is no as yet, and bs, cs, ds need to be scaled to give correct start and end.
+
+
+ds = dsold * duration; // stretches the time axis
+bs = bsold * (endbit-startbit) / (bsold/(csold+exp(-1/dsold)) - bsold/(csold+1)); // scales the y axis;
+cs = csold;
+as = startbit - bs/(cs+1);
+
+
+// calculate dt for the looping
+
+float64 t, dt;
+uInt16 bit16;
+float64 bit;
+dt = duration / nsteps;
+
+
+// perform the loop. Each time, give out the data
+// and the trigger. The first and the last point
+// are given out precisely. The others are calculated
+// from as, bs, cs and ds.
+
+uInt16 i;
+t = xt; // xt is the start time!
+bit = startbit;
+
+for (i = 0; i < nsteps; i++) {
+
+bit16 = floor(bit);
+timelist[i] = t;
+//channellist[i] = bit16;
+
+channellist[i] = bit;
+
+t = t + dt;
+bit = as+bs/(cs+exp(-(t-xt)/ds));
+
+}
+
+// now the last step is still missing.
+// I do that one separately so I can put out the exact final
+// bit. t is already the correct time.
+
+bit16 = endbit;
+timelist[nsteps] = t;
+channellist[nsteps] = bit16;
+
+-- 
