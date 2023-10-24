@@ -1,7 +1,7 @@
 import numpy as np
 
 
-filename = "files\GetMOTGoing.txt"
+# filename = "files\GetMOTGoing.txt"
 # filename = 'files\ecgroutine.txt'
 # filename = 'test_batch.txt'
 
@@ -20,9 +20,9 @@ def get_actions(filename):
     dacdatabits = [0,15] #16 data bits 
     dactrigger = 16 
     dacaddressbits = [17, 20] # 4 address bits
-    TTLs = [32, 95] # 4 16 bit blocks
+    # TTLs = [32, 95] # 4 16 bit blocks
     # bonus = [21, 30]
-    board_sync = 31 # reserved line for board sync trigger
+    # board_sync = 31 # reserved line for board sync trigger
 
     # Helper routines
     def replacebits(number, newbits, i, j):
@@ -133,33 +133,34 @@ def get_actions(filename):
     num_DIO_blocks = 6
     main_portlist = np.zeros((uniquetimes, num_DIO_blocks), dtype = np.uint16)
     aux_portlist = np.zeros((uniquetimes, num_DIO_blocks), dtype = np.uint16)
-    xtlist = -1*np.ones(uniquetimes, dtype = np.uint32)
+    xtlist = -1*np.ones(uniquetimes, dtype=np.int32)
     i=-1
     previoustime = -1
 
     for time, channel, action, param in actions_np:
-        #Do we have a new time?
-        time = int(time)
-        channel = int(channel)
-        #First check if this is a new time. If so, add it to xt,
-        #and copy previous port state to the new time before modifying it.
         block_index = 1
         portlist = main_portlist
-
+        # Shift channel into appropriate DIO block and for bitwise operations
         if channel >= 100:
             channel -= 100
             portlist = aux_portlist
         
         block_index = channel // 16
         channel -= (block_index*16)
-
+        channel = int(channel)
+        #Do we have a new time?
+        time = int(time)
+        
+        #Check if this is a new time. If so, add it to xt,
+        #and copy previous port state to the new time before modifying it.
         if time > previoustime: #We have a new time
             i +=1
             previoustime = time
             xtlist[i] = time
             portlist[i] = portlist[i-1]
-        temp = int(portlist[i][block_index])
 
+        temp = int(portlist[i][block_index])
+        print(portlist[i][block_index])
         if action == 0:  # set a TTL to low
             portlist[i][block_index] = temp & ~(1 << channel)
         elif action == 1:  # set a TTL to high
@@ -181,7 +182,10 @@ def get_actions(filename):
     and for all the GPIB commands:    
     GPIBmatrix    
     """
-    print(main_portlist)
-    return xtlist, GPIBmatrix, main_portlist, aux_portlist
+    xtlist = xtlist.astype(np.uint32)
 
-get_actions(filename)
+    cluster = (xtlist, GPIBmatrix, main_portlist, aux_portlist)
+    # print(cluster)
+    return cluster
+
+# get_actions(filename) # for testing

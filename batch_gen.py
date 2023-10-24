@@ -2,8 +2,8 @@
 import random
 import numpy as np
 
-num_commands = 100
-xt_end = 3e6
+num_commands = 2
+xt_end = 1000
 
 # Define all possible channels
 all_channels = list(range(96*2))
