@@ -2,11 +2,12 @@
 import random
 import numpy as np
 
-num_commands = 2
-xt_end = 1000
+num_commands = 25
+xt_end = 1e7
 
 # Define all possible channels
-all_channels = list(range(96*2))
+# all_channels = list(range(96*2))
+all_channels = [1, 101]
 
 # Define forbidden channels
 forbidden_channels = [30, 130] + list(range(95, 100)) + list(range(195, 200))
