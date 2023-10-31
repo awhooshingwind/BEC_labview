@@ -25,8 +25,8 @@ import numpy as np
 
 
 # filename = 'files\ecgroutine.txt'
-filename = 'files\GetMOTGoing.txt'
-# filename = 'test_batch.txt'
+# filename = 'files\GetMOTGoing.txt'
+filename = 'test_batch.txt'
 
 with open(filename) as f:
     #This reads in a batch file with tab separated columns.
@@ -142,7 +142,7 @@ actions_np = np.array(actionlist)
 print('Sorting actions...')
 actions_np = actions_np[actions_np[:, 0].argsort()]
 print('Done sorting actions.') 
-print(actions_np)   
+# print(actions_np)   
 
 #Now that everything is timeorderd, assemble all those actions that occur at a 
 #given time to a final port value (all 92 bits) for that particular time.

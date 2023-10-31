@@ -2,7 +2,7 @@
 import random
 import numpy as np
 
-num_commands = 25
+num_commands = 40
 xt_end = 1e7
 
 # Define all possible channels
@@ -10,7 +10,7 @@ xt_end = 1e7
 all_channels = [1, 101]
 
 # Define forbidden channels
-forbidden_channels = [30, 130] + list(range(95, 100)) + list(range(195, 200))
+forbidden_channels = [48, 63, 132, 147] + list(range(95, 100)) + list(range(195, 200))
 
 # Create an array of allowed channels by excluding forbidden channels
 channels = np.array([ch for ch in all_channels if ch not in forbidden_channels])

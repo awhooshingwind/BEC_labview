@@ -72,6 +72,3 @@ node_modules/
 *.ppc/
 *.debug/
 *.release/
-
-# batch protocol files
-*.txt
