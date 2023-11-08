@@ -2,8 +2,8 @@
 import random
 import numpy as np
 
-num_commands = 40
-xt_end = 1e7
+num_commands = 100
+xt_end = 5e6
 
 # Define all possible channels
 # all_channels = list(range(96*2))
@@ -15,8 +15,11 @@ forbidden_channels = [48, 63, 132, 147] + list(range(95, 100)) + list(range(195,
 # Create an array of allowed channels by excluding forbidden channels
 channels = np.array([ch for ch in all_channels if ch not in forbidden_channels])
 
-commands = ['on', 'off', 'raise', 'dacvolts' , 'linrampbits', 'GPIBwrite']
-weights = [5, 5, 3, 3, 1, 1]
+# commands = ['on', 'off', 'raise', 'dacvolts' , 'linrampbits', 'GPIBwrite']
+# weights = [5, 5, 3, 3, 1, 1]
+
+commands = ['on', 'off', 'GPIBwrite']
+weights = [6, 2, 1]
 
 def write_line(*args):
     line = ''

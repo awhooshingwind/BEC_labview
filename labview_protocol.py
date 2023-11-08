@@ -3,7 +3,7 @@ import numpy as np
 
 # filename = "files\GetMOTGoing.txt"
 # filename = 'files\ecgroutine.txt'
-# filename = 'test_batch.txt'
+filename = 'test_batch.txt'
 
 
 def get_actions(filename):
@@ -138,7 +138,7 @@ def get_actions(filename):
     previoustime = -1
 
     for time, channel, action, param in actions_np:
-        block_index = 1
+        block_index = 0
         portlist = main_portlist
         # Shift channel into appropriate DIO block and for bitwise operations
         if channel >= 100:
@@ -160,7 +160,7 @@ def get_actions(filename):
             portlist[i] = portlist[i-1]
 
         temp = int(portlist[i][block_index])
-        print(portlist[i][block_index])
+        # print(portlist[i][block_index])
         if action == 0:  # set a TTL to low
             portlist[i][block_index] = temp & ~(1 << channel)
         elif action == 1:  # set a TTL to high
@@ -185,7 +185,7 @@ def get_actions(filename):
     xtlist = xtlist.astype(np.uint32)
 
     cluster = (xtlist, GPIBmatrix, main_portlist, aux_portlist)
-    # print(cluster)
+    print(cluster)
     return cluster
 
-# get_actions(filename) # for testing
+get_actions(filename) # for testing
