@@ -3,14 +3,14 @@ import random
 import numpy as np
 
 num_commands = 100
-xt_end = 5e6
+xt_end = 5e2
 
 # Define all possible channels
-# all_channels = list(range(96*2))
-all_channels = [1, 101]
+all_channels = list(range(196))
+# all_channels = [1, 101]
 
 # Define forbidden channels
-forbidden_channels = [48, 63, 132, 147] + list(range(95, 100)) + list(range(195, 200))
+forbidden_channels = [48, 63, 132, 147] + list(range(96, 100)) + list(range(196, 200))
 
 # Create an array of allowed channels by excluding forbidden channels
 channels = np.array([ch for ch in all_channels if ch not in forbidden_channels])
@@ -54,3 +54,14 @@ with open('test_batch.txt', 'w') as f:
         else:
             line = write_line(command, time, channel)
         f.write(line + '\n')
+
+def generate_sequential_activation(file_name, start_time, time_step, channels):
+    with open(file_name, 'w') as f:
+        current_time = start_time
+        for channel in channels:
+            line_on = write_line('on', current_time, channel)
+            f.write(line_on + '\n')
+            current_time += time_step
+
+# Usage
+generate_sequential_activation('sequential_batch.txt', 100, int(3e5), channels) # or any other range or list of channels

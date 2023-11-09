@@ -3,7 +3,8 @@ import numpy as np
 
 # filename = "files\GetMOTGoing.txt"
 # filename = 'files\ecgroutine.txt'
-filename = 'test_batch.txt'
+# filename = 'test_batch.txt'
+filename = 'sequential_batch.txt'
 
 
 def get_actions(filename):
