@@ -6,7 +6,7 @@ num_commands = 100
 xt_end = 5e2
 
 # Define all possible channels
-all_channels = list(range(196))
+all_channels = list(range(40)) + list(range(100,140))
 # all_channels = [1, 101]
 
 # Define forbidden channels
@@ -64,4 +64,4 @@ def generate_sequential_activation(file_name, start_time, time_step, channels):
             current_time += time_step
 
 # Usage
-generate_sequential_activation('sequential_batch.txt', 100, int(3e5), channels) # or any other range or list of channels
+generate_sequential_activation('sequential_batch.txt', 0, 500000, channels) # or any other range or list of channels

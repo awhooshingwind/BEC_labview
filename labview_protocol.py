@@ -141,10 +141,12 @@ def get_actions(filename):
     for time, channel, action, param in actions_np:
         block_index = 0
         portlist = main_portlist
+        other = aux_portlist
         # Shift channel into appropriate DIO block and for bitwise operations
         if channel >= 100:
             channel -= 100
             portlist = aux_portlist
+            other = main_portlist
         
         block_index = channel // 16
         channel -= (block_index*16)
@@ -159,6 +161,7 @@ def get_actions(filename):
             previoustime = time
             xtlist[i] = time
             portlist[i] = portlist[i-1]
+            other[i] = other[i-1]
 
         temp = int(portlist[i][block_index])
         # print(portlist[i][block_index])
@@ -179,7 +182,7 @@ def get_actions(filename):
     We have for all the TTLs:
     xtlist for all the times of TTLs
     main_portlist as all the states of the TTLs (channels 1-96)**
-    aux_portlist for channels > 64 (shifted down by 96)
+    aux_portlist for channels > 100 (shifted down by 100, so 1-96 on aux board)
     and for all the GPIB commands:    
     GPIBmatrix    
     """
@@ -187,6 +190,14 @@ def get_actions(filename):
 
     cluster = (xtlist, GPIBmatrix, main_portlist, aux_portlist)
     print(cluster)
+    ## For testing/verify portlists
+    with open('main_portlist.txt', 'w') as f:
+        for line in main_portlist:
+            f.write(f"{line}\n")
+    with open('aux_portlist.txt', 'w') as f:
+        for line in aux_portlist:
+            f.write(f"{line}\n") 
+
     return cluster
 
 get_actions(filename) # for testing
