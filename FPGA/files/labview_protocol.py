@@ -1,7 +1,11 @@
 import numpy as np
 
+
+# filename = "files\GetMOTGoing.txt"
+# filename = 'files\ecgroutine.txt'
 # filename = 'test_batch.txt'
-filename = 'GetMOTGoing.txt'
+# filename = 'sequential_batch.txt'
+
 
 def get_actions(filename):
     actionlist = []  # time, channel, actionidentifier, action parameter
@@ -13,16 +17,13 @@ def get_actions(filename):
     # Our GPIBloop VI requires a timeorderd list of times, addess string, commandstring
     GPIBmatrix = []
 
-    # Some channel definitions of hardwired channels
-    # The final values will be determined when we hardwire the DACs to TTL channels
-    dactrigger = 5  # Assume TTL 5 is hardwired to be dac trigger channel
-    dacaddressbits = [6, 9]  # Assume TTLs 6 through 9 ar the dac address bits
-    dacdatabits = [10, 25]  # 16 data bits are bits 10 through 25
-    GPIBtrigger = 4  # Triggers the timed GPIB loop in Labview
-
-    # Here we could also implement a lookup table that converts
-    # the logical TTL channel number to the hardwired bits of the card
-    # We should then use this in all on, off and raise commands
+    #Some channel definitions of hardwired channels
+    dacdatabits = [0,15] #16 data bits 
+    dactrigger = 16 
+    dacaddressbits = [17, 20] # 4 address bits
+    # TTLs = [32, 95] # 4 16 bit blocks
+    # bonus = [21, 30]
+    # board_sync = 31 # reserved line for board sync trigger
 
     # Helper routines
     def replacebits(number, newbits, i, j):
@@ -36,6 +37,10 @@ def get_actions(filename):
         number = cleared | newbits
         # print(bin(number))
         return number
+    
+    def volts_to_dacbits(volts):
+    # using 16bit int to cover range -10V to 10V
+        return int(volts - (-10)/(5/16384))
 
     def setdacbits(time, dacaddress, databits):
         # defined function for this cause this sequence is often used in all ramps
@@ -52,7 +57,6 @@ def get_actions(filename):
         actionlist.append([time + 1, dactrigger, 1, 0])
         actionlist.append([time + 2, dactrigger, 0, 0])
 
-    
     with open(filename) as f:
         # This reads in a batch file with tab separated columns.
         # It also automatically takes off the \n in the lines.
@@ -85,19 +89,10 @@ def get_actions(filename):
                 actionlist.append([time + duration, channel, 0, 0])
                 # parameter is not used for this, so set it to 0.
 
-            # elif commands[0] == "dacbits":  # dacbits xt, dacchannel, value
-            #     time = int(commands[1])
-            #     dacaddress = int(commands[2])
-            #     databits = int(commands[3])
-            #     # put this into a separate function cause used in all ramps etc.
-            #     setdacbits(time, dacaddress, databits)
             elif commands[0] == 'dacvolts':  #dacbits xt, dacchannel, value
                 time = int(commands[1])
                 dacaddress = int(commands[2])
-
-                # Fix this part!!!
-                databits = int(round(float(commands[3]))) # janky fix, just for testing!!!
-
+                databits =  volts_to_dacbits(float(commands[3]))
                 #put this into a separate function cause used in all ramps etc.
                 setdacbits(time,dacaddress,databits)
 
@@ -132,45 +127,52 @@ def get_actions(filename):
     # Now that we have all actions spelled out (i.e. all individual bit settings),
     # need to sort this matrix by time
     actions_np = np.array(actionlist)
-  
+
     # Now sort the actions by the first column, which is their times
     actions_np = actions_np[actions_np[:, 0].argsort()]
-
-    uniquetimes = len(np.unique(actions_np[:, 0]))
-    main_portlist = np.zeros(uniquetimes, dtype=int)
-    aux_portlist = np.zeros(uniquetimes, dtype=int)
-    xtlist = -1 * np.ones(uniquetimes, dtype=int)
-    i = -1
+    uniquetimes = len(np.unique(actions_np[:,0]))
+    num_DIO_blocks = 6
+    main_portlist = np.zeros((uniquetimes, num_DIO_blocks), dtype = np.uint16)
+    aux_portlist = np.zeros((uniquetimes, num_DIO_blocks), dtype = np.uint16)
+    xtlist = -1*np.ones(uniquetimes, dtype=np.int32)
+    i=-1
     previoustime = -1
+
     for time, channel, action, param in actions_np:
-        # Do we have a new time?
+        block_index = 0
+        portlist = main_portlist
+        other = aux_portlist
+        # Shift channel into appropriate DIO block and for bitwise operations
+        if channel >= 100:
+            channel -= 100
+            portlist = aux_portlist
+            other = main_portlist
+        
+        block_index = channel // 16
+        channel -= (block_index*16)
+        channel = int(channel)
+        #Do we have a new time?
         time = int(time)
-        channel = int(channel)  # Otherwise bitshift won't work!!!
-
-        # Rough sorting btw main/aux portlists
-        portlist = main_portlist # default to main list
-
-        if channel > 64:
-            channel -= 96 # shift channel for aux portlist
-            portlist = aux_portlist # switch lists
-
-        # First check if this is a new time. If so, add it to xt,
-        # and copy previous port state to the new time before modifying it.
-        if time > previoustime:  # We have a new time
-            i += 1
+        
+        #Check if this is a new time. If so, add it to xt,
+        #and copy previous port state to the new time before modifying it.
+        if time > previoustime: #We have a new time
+            i +=1
             previoustime = time
             xtlist[i] = time
-            portlist[i] = portlist[i - 1]
-        # now modify the current port
-        temp = int(portlist[i])
+            portlist[i] = portlist[i-1]
+            other[i] = other[i-1]
+
+        temp = int(portlist[i][block_index])
+        # print(portlist[i][block_index])
         if action == 0:  # set a TTL to low
-            portlist[i] = temp & ~(1 << channel)
+            portlist[i][block_index] = temp & ~(1 << channel)
         elif action == 1:  # set a TTL to high
-            portlist[i] = temp | (1 << channel)
+            portlist[i][block_index] = temp | (1 << channel)
         elif action == 2:  # replace dac address bits by param
-            portlist[i] = replacebits(temp, param, dacaddressbits[0], dacaddressbits[1])
+            portlist[i][block_index] = replacebits(temp, param, dacaddressbits[0], dacaddressbits[1])
         elif action == 3:  # replace dac data bits by param
-            portlist[i] = replacebits(temp, param, dacdatabits[0], dacdatabits[1])
+            portlist[i][block_index] = replacebits(temp, param, dacdatabits[0], dacdatabits[1])
 
     # Now we need to timeorder the GPIBmatrix
     GPIBmatrix = sorted(GPIBmatrix, key=lambda x: int(x[0]))
@@ -180,12 +182,13 @@ def get_actions(filename):
     We have for all the TTLs:
     xtlist for all the times of TTLs
     main_portlist as all the states of the TTLs (channels 1-96)**
-    aux_portlist for channels > 64 (shifted down by 96)
+    aux_portlist for channels > 100 (shifted down by 100, so 1-96 on aux board)
     and for all the GPIB commands:    
     GPIBmatrix    
     """
-    return xtlist, main_portlist, aux_portlist, GPIBmatrix
+    xtlist = xtlist.astype(np.uint32)
 
-# ** this is only a quick and dirty fix for testing,
-# channels >64 but < 96
-# will end up negative and break everything
+    cluster = (xtlist, GPIBmatrix, main_portlist, aux_portlist)
+    # print(cluster)
+    
+    return cluster

@@ -21,4 +21,4 @@ on	1030	3
 on	1030	4
 on	1030	11
 linrampbits	2000	1	0	16000	120000	5000
-GPIBwrite	500	12	test
+GPIBwrite	5000	12	test
