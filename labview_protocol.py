@@ -4,7 +4,8 @@ import numpy as np
 # filename = "files\GetMOTGoing.txt"
 # filename = 'files\ecgroutine.txt'
 # filename = 'test_batch.txt'
-filename = 'sequential_batch.txt'
+# filename = 'sequential_batch.txt'
+filename = 'dac_test.txt'
 
 
 def get_actions(filename):
@@ -40,7 +41,7 @@ def get_actions(filename):
     
     def volts_to_dacbits(volts):
     # using 16bit int to cover range -10V to 10V
-        return int(volts - (-10)/(5/16384))
+        return int((volts+10)/20 * 65535)
 
     def setdacbits(time, dacaddress, databits):
         # defined function for this cause this sequence is often used in all ramps
@@ -89,7 +90,7 @@ def get_actions(filename):
                 actionlist.append([time + duration, channel, 0, 0])
                 # parameter is not used for this, so set it to 0.
 
-            elif commands[0] == 'dacvolts':  #dacbits xt, dacchannel, value
+            elif commands[0] == 'dacvolts':  #dacvolts, xt, dacchannel, value
                 time = int(commands[1])
                 dacaddress = int(commands[2])
                 databits =  volts_to_dacbits(float(commands[3]))
@@ -189,15 +190,16 @@ def get_actions(filename):
     xtlist = xtlist.astype(np.uint32)
 
     cluster = (xtlist, GPIBmatrix, main_portlist, aux_portlist)
-    print(cluster)
+    
     ## For testing/verify portlists
-    with open('main_portlist.txt', 'w') as f:
-        for line in main_portlist:
-            f.write(f"{line}\n")
-    with open('aux_portlist.txt', 'w') as f:
-        for line in aux_portlist:
-            f.write(f"{line}\n") 
+    # print(cluster)
+    # with open('main_portlist.txt', 'w') as f:
+    #     for line in main_portlist:
+    #         f.write(f"{line}\n")
+    # with open('aux_portlist.txt', 'w') as f:
+    #     for line in aux_portlist:
+    #         f.write(f"{line}\n") 
 
     return cluster
 
-get_actions(filename) # for testing
+# get_actions(filename) # for testing

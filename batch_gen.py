@@ -27,6 +27,7 @@ def write_line(*args):
         line += (f"{arg}\t")
     # print(line)
     return line.strip()
+
 def random_test():
     with open('test_batch.txt', 'w') as f:
         for i in range(num_commands):
@@ -93,12 +94,18 @@ def transience_tests(file_name, test_line, rate=int(5e4), num_channels=8):
                 toggle_line(i, 'off', curr_time+2*rate)
         # curr_time += 2*rate
         
-       
-        
+def dac_test(rate=int(10e6), dac_address=0):
+    test_voltages = [0, -10, 10]
+    with open('dac_test.txt', 'w') as f:
+        for i, volt in enumerate(test_voltages):
+            cmd = write_line('dacvolts', rate*i, dac_address, volt)
+            f.write(cmd + '\n')
+
             
         
 # Usage
 
 # generate_sequential_activation('sequential_batch.txt', 0, 500000, channels) # or any other range or list of channels
 # random_test()
-transience_tests('toggle_test.txt', 5)
+# transience_tests('toggle_test.txt', 5)
+dac_test()
