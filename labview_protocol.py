@@ -1,6 +1,10 @@
 import numpy as np
 import math
 
+''' To function within LabView Python node, whole routine needs to be wrapped
+in a callable function - takes a path to the protocol.txt file as an argument,
+returns a cluster that gets passed into global vars for handing off to FPGAs
+'''
 def get_actions(filename):
     actionlist = []  # time, channel, actionidentifier, action parameter
     # Note: Action parameters are used for dac values to avoid writing out
@@ -17,19 +21,15 @@ def get_actions(filename):
     dacaddressbits = [1, 4] # 4 address bits (on block 1, DIO 20:17)
     # TTLs = [32, 95] # 4 16 bit blocks
     # bonus = [21, 30]
-    # board_sync = 31 # reserved line for board sync trigger
+    # board_sync = 63 # reserved line for board sync trigger
 
     # Helper routines
     def replacebits(number, newbits, i, j):
         # Replaces bits i through j of number by newbits
         mask = (1 << (j - i + 1)) - 1  # creates j-i+1 ones
-        # print(bin(mask))
         cleared = number & ~(mask << i)  # shift mask into place and invert
-        # print(bin(cleared))
         newbits = newbits << i  # shift the new bits into place
-        # print(bin(newbits))
         number = cleared | newbits
-        # print(bin(number))
         return number
     
     def volts_to_dacbits(volts):
@@ -43,13 +43,14 @@ def get_actions(filename):
         actionlist.append([time, 0, 2, dacaddress])
         # put the data on the databus for the dacs. This is action identifier 3.
         actionlist.append([time, 0, 3, databits])
-        # Run the DAC trigger. Need to check how many triggers I need here!
-        # For starters, just do one trigger, but might need more.
-        actionlist.append(
-            [time, dactrigger, 0, 0]
-        )  # just to be sure that trigger is 0 first
-        actionlist.append([time + 1, dactrigger, 1, 0])
-        actionlist.append([time + 2, dactrigger, 0, 0])
+        # Run the DAC trigger. Need two transitions to load then latch DAC data
+        # start high, prevents address bits from loading data into buffers too soon
+        actionlist.append([time, dactrigger, 1, 0]) 
+        actionlist.append([time + 1, dactrigger, 0, 0]) # low + address loads into buffers
+        actionlist.append([time + 2, dactrigger, 1, 0]) # need one more strobe to latch into ad7846
+        actionlist.append([time + 3, dactrigger, 0, 0])
+        actionlist.append([time + 4, dactrigger, 1, 0]) # default trigger to high
+
 
     with open(filename) as f:
         # This reads in a batch file with tab separated columns.
@@ -64,9 +65,7 @@ def get_actions(filename):
             if commands[0] == "on":
                 time = int(commands[1])
                 channel = int(commands[2])
-                actionlist.append(
-                    [time, channel, 1, 0]
-                )  # action 1 means set a TTL high.
+                actionlist.append([time, channel, 1, 0])  # action 1 means set a TTL high.
                 # parameter is not used for this, so set it to 0.
 
             elif commands[0] == "off":
@@ -83,16 +82,16 @@ def get_actions(filename):
                 actionlist.append([time + duration, channel, 0, 0])
                 # parameter is not used for this, so set it to 0.
 
-            elif commands[0] == 'dacvolts':  #dacvolts, xt, dacchannel, value
+            elif commands[0] == 'dacvolts':  
+                # dacvolts, xt, dacchannel, value
                 time = int(commands[1])
                 dacaddress = int(commands[2])
                 databits =  volts_to_dacbits(float(commands[3]))
                 #put this into a separate function cause used in all ramps etc.
                 setdacbits(time,dacaddress,databits)
 
-            elif (
-                commands[0] == "linrampbits"
-            ):  # starttime, channel, startbit, endbit, duration, Nsteps
+            elif commands[0] == "linrampbits": 
+                # starttime, channel, startbit, endbit, duration, Nsteps
                 starttime = int(commands[1])
                 dacaddress = int(commands[2])
                 startbit = int(commands[3])
@@ -107,14 +106,11 @@ def get_actions(filename):
                 for tr, br in zip(ramptimes, rampbits):
                     # Don't use np.round for time: Need to avoid two things happening at same time.
                     setdacbits(int(np.floor(tr)), dacaddress, int(np.round(br)))
-                    # print(int(np.floor(tr)), '\t', int(np.round(br)))
                     # for the last step we don't want to round but be precise:
                     setdacbits(starttime + duration, dacaddress, endbit)
-                    # print(starttime+duration, '\t', endbit)
             
-            elif (
-                commands[0] == "linrampvolts"
-            ):  # starttime, channel, start volt, endvolt, duration, Nsteps
+            elif commands[0] == "linrampvolts": 
+                # starttime, channel, start volt, endvolt, duration, Nsteps
                 starttime = int(commands[1])
                 dacaddress = int(commands[2])
                 startbit = volts_to_dacbits(float(commands[3]))
@@ -127,12 +123,9 @@ def get_actions(filename):
                 )
                 rampbits = np.linspace(startbit, endbit, Npoints - 1, endpoint=False)
                 for tr, br in zip(ramptimes, rampbits):
-                    # Don't use np.round for time: Need to avoid two things happening at same time.
                     setdacbits(int(np.floor(tr)), dacaddress, int(np.round(br)))
-                    # print(int(np.floor(tr)), '\t', int(np.round(br)))
                     # for the last step we don't want to round but be precise:
                     setdacbits(starttime + duration, dacaddress, endbit)
-                    # print(starttime+duration, '\t', endbit)
 
             elif commands[0] == "GPIBwrite":
                 time = int(commands[1])
@@ -180,18 +173,15 @@ def get_actions(filename):
             other[i] = other[i-1]
 
         temp = int(portlist[i][block_index])
-        # print(portlist[i][block_index])
         if action == 0:  # set a TTL to low
             portlist[i][block_index] = temp & ~(1 << channel)
         elif action == 1:  # set a TTL to high
             portlist[i][block_index] = temp | (1 << channel)
         elif action == 2:  # replace dac address bits by param
-            temp = ~int(portlist[i][1]) # DAC address bits in block 1
-            print(temp)
+            temp = int(portlist[i][1]) # DAC address bits in block 1
             portlist[i][1] = replacebits(temp, param, dacaddressbits[0], dacaddressbits[1])
-            # print(replacebits(temp, param, dacaddressbits[0], dacaddressbits[1]))
         elif action == 3:  # replace dac data bits by param
-            temp = ~int(portlist[i][0]) # DAC data bits on block 0
+            temp = int(portlist[i][0]) # DAC data bits on block 0
             portlist[i][0] = replacebits(temp, param, dacdatabits[0], dacdatabits[1])
 
     # Now we need to timeorder the GPIBmatrix
@@ -211,10 +201,9 @@ def get_actions(filename):
     cluster = (xtlist, GPIBmatrix, main_portlist, aux_portlist)
     
     ## For testing/verify portlists
-    # print(cluster)
-    with open('main_portlist.txt', 'w') as f:
-        for line in main_portlist:
-            f.write(f"{line}\n")
+    # with open('main_portlist.txt', 'w') as f:
+    #    for line in main_portlist:
+    #        f.write(f"{line}\n")
     # with open('aux_portlist.txt', 'w') as f:
     #     for line in aux_portlist:
     #         f.write(f"{line}\n") 
@@ -229,5 +218,6 @@ def get_actions(filename):
 # filename = 'sequential_batch.txt'
 # filename = 'dac_test.txt'
 
-# print(get_actions(filename))
+
+# print(get_actions(filename)) # for testing
 
