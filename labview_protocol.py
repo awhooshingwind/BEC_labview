@@ -1,10 +1,12 @@
 import numpy as np
 import math
 
-''' To function within LabView Python node, whole routine needs to be wrapped
+"""
+To function within LabView Python node, whole routine needs to be wrapped
 in a callable function - takes a path to the protocol.txt file as an argument,
 returns a cluster that gets passed into global vars for handing off to FPGAs
-'''
+"""
+
 def get_actions(filename):
     actionlist = []  # time, channel, actionidentifier, action parameter
     # Note: Action parameters are used for dac values to avoid writing out
@@ -33,7 +35,7 @@ def get_actions(filename):
         return number
     
     def volts_to_dacbits(volts):
-    # using 16bit int to cover range -10V to 10V
+    # using 16bit int to cover range -10V to 10V (0:65535)
         return math.ceil((volts+10)/20 * 65535)
 
     def setdacbits(time, dacaddress, databits):
@@ -55,7 +57,7 @@ def get_actions(filename):
     with open(filename) as f:
         # This reads in a batch file with tab separated columns.
         # It also automatically takes off the \n in the lines.
-        # Using tap separated columnns instead of blanks is important e.g. for GPIB strings:
+        # Using tab separated columnns instead of blanks is important e.g. for GPIB strings
         # GPIB strings can contain spaces but the whole string should be one parameter.
         commandlines = f.read().splitlines()
 
@@ -99,10 +101,8 @@ def get_actions(filename):
                 duration = int(commands[5])
                 Npoints = int(commands[6])
                 # In loop, don't do last step cause want to do this one without rounding
-                ramptimes = np.linspace(
-                    starttime, starttime + duration, Npoints - 1, endpoint=False
-                )
-                rampbits = np.linspace(startbit, endbit, Npoints - 1, endpoint=False)
+                ramptimes = np.linspace(starttime, starttime+duration, Npoints-1, endpoint=False)
+                rampbits = np.linspace(startbit, endbit, Npoints-1, endpoint=False)
                 for tr, br in zip(ramptimes, rampbits):
                     # Don't use np.round for time: Need to avoid two things happening at same time.
                     setdacbits(int(np.floor(tr)), dacaddress, int(np.round(br)))
@@ -118,10 +118,8 @@ def get_actions(filename):
                 duration = int(commands[5])
                 Npoints = int(commands[6])
                 # In loop, don't do last step cause want to do this one without rounding
-                ramptimes = np.linspace(
-                    starttime, starttime + duration, Npoints - 1, endpoint=False
-                )
-                rampbits = np.linspace(startbit, endbit, Npoints - 1, endpoint=False)
+                ramptimes = np.linspace(starttime, starttime+duration, Npoints-1, endpoint=False)
+                rampbits = np.linspace(startbit, endbit, Npoints-1, endpoint=False)
                 for tr, br in zip(ramptimes, rampbits):
                     setdacbits(int(np.floor(tr)), dacaddress, int(np.round(br)))
                     # for the last step we don't want to round but be precise:
@@ -212,12 +210,12 @@ def get_actions(filename):
 
 # For testing
 
-# filename = "files\GetMOTGoing.txt"
+filename = "FPGA\\files\GetMOTGoing.txt"
 # filename = 'files\ecgroutine.txt'
 # filename = 'test_batch.txt'
 # filename = 'sequential_batch.txt'
 # filename = 'dac_test.txt'
 
 
-# print(get_actions(filename)) # for testing
+print(get_actions(filename)) # for testing
 

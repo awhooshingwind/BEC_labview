@@ -100,9 +100,7 @@ def dac_test(rate=int(10e6), dac_address=0):
         for i, volt in enumerate(test_voltages):
             cmd = write_line('dacvolts', rate*i, dac_address, volt)
             f.write(cmd + '\n')
-
-            
-        
+   
 # Usage
 
 # generate_sequential_activation('sequential_batch.txt', 0, 500000, channels) # or any other range or list of channels
