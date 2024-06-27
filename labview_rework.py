@@ -8,10 +8,10 @@ returns a cluster that gets passed into global vars for handing off to FPGAs
 """
 
 # Some channel definitions of hardwired channels
-dacdatabits = [0,15] #16 data bits 
+dacdatabits = [0,15] # 16 data bits 
 dactrigger = 16 
 dacaddressbits = [1, 4] # 4 address bits (on block 1, DIO 20:17)
-# TTLs = [32, 95] # 4 16 bit blocks
+# TTLs = [32, 95] # 4 16-bit blocks
 # bonus = [21, 30]
 # board_sync = 63 # reserved line for board sync trigger
 
@@ -42,6 +42,7 @@ def setdacbits(time, dacaddress, databits, actions):
     actions.append([time + 3, dactrigger, 0, 0])
     actions.append([time + 4, dactrigger, 1, 0]) # default trigger to high
 
+# Command handling functions
 def set_TTL(command, actions):
     # reusable for processing TTL related commands
     time = int(command[1])
@@ -74,10 +75,10 @@ def process_ramp(command, actions):
         setdacbits(start + duration, dac_channel, end_value, actions)
     
 def process_GPIB(command, GPIBmatrix):
-    time = int(command[1])
-    address = int(command[2])
+    time = str(command[1])
+    address = str(command[2])
     Gcomms = command[3]  # this is string! Not numbers.
-    GPIBmatrix.append([str(time), str(address), Gcomms])
+    GPIBmatrix.append([time, address, Gcomms])
 
 # Dict of command types
 command_dispatch = {
@@ -135,6 +136,7 @@ def get_actions(filename):
     i=-1
     previoustime = -1
 
+    # From time-ordered actions array, generate portlists (FPGA output)
     for time, channel, action, param in actions_np:
         block_index = 0
         portlist = main_portlist
@@ -179,7 +181,7 @@ def get_actions(filename):
     Now we can hand over the results to Labview.
     We have for all the TTLs:
     xtlist for all the times of TTLs
-    main_portlist as all the states of the TTLs (channels 1-96)**
+    main_portlist as all the states of the TTLs (channels 1-96)
     aux_portlist for channels > 100 (shifted down by 100, so 1-96 on aux board)
     and for all the GPIB commands:    
     GPIBmatrix    
