@@ -100,10 +100,26 @@ def dac_test(rate=int(10e6), dac_address=0):
         for i, volt in enumerate(test_voltages):
             cmd = write_line('dacvolts', rate*i, dac_address, volt)
             f.write(cmd + '\n')
-   
+
+def line_driver_test(duration=8e6):
+    time_step = int(duration/8)
+    with open('line_driver_test.txt', 'w') as f:
+        for i in range(8):
+            # sequential on/off
+            cmd = write_line('on', int(i*time_step), i)
+            f.write(cmd + '\n')
+            cmd = write_line('off', int(i*time_step + time_step/2), i)
+            f.write(cmd + '\n')
+            # all on at end
+            cmd = write_line('on', int(duration), i)
+            f.write(cmd + '\n')
+            cmd = write_line('off', int(duration + time_step/2), i)
+            f.write(cmd + '\n')
+
 # Usage
 
 # generate_sequential_activation('sequential_batch.txt', 0, 500000, channels) # or any other range or list of channels
 # random_test()
 # transience_tests('toggle_test.txt', 5)
-dac_test()
+# dac_test()
+line_driver_test()

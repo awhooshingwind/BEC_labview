@@ -59,6 +59,12 @@ def set_dac(command, actions):
     dac_data = volts_to_dacbits(float(command[3])) if 'volts' in command[0] else int(command[3])
     setdacbits(time, dac_channel, dac_data, actions)
 
+def sigbits(bmin, bmax, num_steps):
+    # helper for sigmoid ramping
+    L = bmax-bmin
+    xvals = np.linspace(-6, 6, num_steps)
+    return (L / (1 + np.exp(-xvals))) + bmin
+
 def process_ramp(command, actions):
     start = int(command[1])
     dac_channel = int(command[2])
@@ -66,14 +72,19 @@ def process_ramp(command, actions):
     end_value = volts_to_dacbits(float(command[4])) if 'volts' in command[0] else int(command[4])
     duration = int(command[5])
     Npoints = int(command[6])
+    end = start+duration
     if 'lin' in command[0]:
         # Use np.linspace for linear ramping - can add other types of ramp logic here later
-        ramptimes = np.linspace(start, start+duration, Npoints-1, endpoint=False)
+        ramptimes = np.linspace(start, end, Npoints-1, endpoint=False)
         rampbits = np.linspace(start_value, end_value, Npoints-1, endpoint=False)
-        for tr, br in zip(ramptimes, rampbits):
-            setdacbits(int(np.floor(tr)), dac_channel, int(np.round(br)), actions)
+    if 'sig' in command[0]:
+        ramptimes = np.linspace(start, end, Npoints-1, endpoint=False)
+        rampbits = sigbits(start_value, end_value, Npoints-1)
+    for tr, br in zip(ramptimes, rampbits):
+        setdacbits(int(np.floor(tr)), dac_channel, int(np.round(br)), actions)
         setdacbits(start + duration, dac_channel, end_value, actions)
     
+        
 def process_GPIB(command, GPIBmatrix):
     time = str(command[1])
     address = str(command[2])
@@ -88,6 +99,8 @@ command_dispatch = {
     'dacvolts': set_dac,
     'linrampbits': process_ramp,
     'linrampvolts': process_ramp,
+    'sigrampbits': process_ramp,
+    'sigrampvolts': process_ramp,
     'GPIBwrite': process_GPIB
 }
 
@@ -125,11 +138,12 @@ def get_actions(filename):
     # Now that we have all actions spelled out (i.e. all individual bit settings),
     # need to sort this matrix by time
     actions_np = np.array(actionlist)
+    print(actions_np)
 
     # Now sort the actions by the first column, which is their times
     actions_np = actions_np[actions_np[:, 0].argsort()]
     uniquetimes = len(np.unique(actions_np[:,0]))
-    num_DIO_blocks = 6
+    num_DIO_blocks = 6 # for the RMC on sbRIO 9606
     main_portlist = np.zeros((uniquetimes, num_DIO_blocks), dtype = np.uint16)
     aux_portlist = np.zeros((uniquetimes, num_DIO_blocks), dtype = np.uint16)
     xtlist = -1*np.ones(uniquetimes, dtype=np.int32)
@@ -141,12 +155,12 @@ def get_actions(filename):
         block_index = 0
         portlist = main_portlist
         other = aux_portlist
-        # Shift channel into appropriate DIO block and for bitwise operations
+        # Switch 'working' list if aux channel (ie 101 -> 01 on aux board)
         if channel >= 100:
             channel -= 100
             portlist = aux_portlist
             other = main_portlist
-        
+        # Select block index before doing bitwise operations
         block_index = channel // 16
         channel -= (block_index*16)
         channel = int(channel)
